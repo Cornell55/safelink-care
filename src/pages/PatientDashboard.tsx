@@ -7,6 +7,7 @@ import { SelfReminder } from "@/components/patient/SelfReminder";
 import { MedicalInfo } from "@/components/patient/MedicalInfo";
 import { FamilyContactsList } from "@/components/patient/FamilyContactsList";
 import { SafeZoneAlert } from "@/components/patient/SafeZoneAlert";
+import { MediaShareListener } from "@/components/patient/MediaShareListener";
 import { useTasks } from "@/hooks/useTasks";
 import { useAlarmSound } from "@/hooks/useAlarmSound";
 import { useGeolocation, getDistanceMeters } from "@/hooks/useGeolocation";
@@ -182,6 +183,9 @@ export default function PatientDashboard() {
           <SelfReminder />
         </div>
       </div>
+
+      {/* Invisible media listener */}
+      <MediaShareListener />
 
       {/* Emergency Button */}
       <EmergencyButton />
