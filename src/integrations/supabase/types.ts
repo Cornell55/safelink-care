@@ -38,6 +38,39 @@ export type Database = {
         }
         Relationships: []
       }
+      family_contacts: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          phone: string | null
+          relationship: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          phone?: string | null
+          relationship?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          phone?: string | null
+          relationship?: string | null
+        }
+        Relationships: []
+      }
       gps_logs: {
         Row: {
           id: string
@@ -56,6 +89,33 @@ export type Database = {
           latitude?: number
           longitude?: number
           recorded_at?: string
+        }
+        Relationships: []
+      }
+      medical_records: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
