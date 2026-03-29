@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, MapPin, Activity, AlertTriangle, Clock, CheckCircle, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Activity, AlertTriangle, Clock, CheckCircle, Trash2 } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { PatientLocationMap } from "@/components/caregiver/PatientLocationMap";
 
 type EmergencyEvent = Tables<"emergency_events">;
-type GpsLog = Tables<"gps_logs">;
+
 
 export default function CaregiverDashboard() {
   const navigate = useNavigate();
@@ -16,7 +17,6 @@ export default function CaregiverDashboard() {
   const [description, setDescription] = useState("");
   const [dueTime, setDueTime] = useState("");
   const [emergencies, setEmergencies] = useState<EmergencyEvent[]>([]);
-  const [latestGps, setLatestGps] = useState<GpsLog | null>(null);
   const [showAddTask, setShowAddTask] = useState(false);
 
   // Fetch emergencies
@@ -42,27 +42,6 @@ export default function CaregiverDashboard() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Fetch latest GPS
-  useEffect(() => {
-    const fetchGps = async () => {
-      const { data } = await supabase
-        .from("gps_logs")
-        .select("*")
-        .order("recorded_at", { ascending: false })
-        .limit(1);
-      if (data?.[0]) setLatestGps(data[0]);
-    };
-    fetchGps();
-
-    const channel = supabase
-      .channel("gps-realtime")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "gps_logs" }, (payload) => {
-        setLatestGps(payload.new as GpsLog);
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, []);
 
   const handleAddTask = async () => {
     if (!description.trim() || !dueTime) {
@@ -116,30 +95,13 @@ export default function CaregiverDashboard() {
       </div>
 
       <div className="px-6 space-y-6 mt-6">
-        {/* Location */}
+        {/* Location Map */}
         <div className="bg-card rounded-2xl p-5 shadow-sm border border-border">
           <div className="flex items-center gap-2 mb-3">
-            <MapPin className="w-5 h-5 text-primary" />
+            <Activity className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-bold text-foreground">Patient Location</h2>
           </div>
-          {latestGps ? (
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">
-                Last update: {format(new Date(latestGps.recorded_at), "h:mm:ss a")}
-              </p>
-              <a
-                href={`https://www.google.com/maps?q=${latestGps.latitude},${latestGps.longitude}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold"
-              >
-                <MapPin className="w-4 h-4" />
-                View on Map
-              </a>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Waiting for patient location...</p>
-          )}
+          <PatientLocationMap />
         </div>
 
         {/* Emergency Alerts */}
