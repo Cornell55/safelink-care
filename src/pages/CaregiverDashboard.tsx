@@ -7,6 +7,9 @@ import type { Tables } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { PatientLocationMap } from "@/components/caregiver/PatientLocationMap";
+import { FamilyContacts } from "@/components/caregiver/FamilyContacts";
+import { MedicalRecords } from "@/components/caregiver/MedicalRecords";
+import { PatientNotes } from "@/components/caregiver/PatientNotes";
 
 type EmergencyEvent = Tables<"emergency_events">;
 
@@ -189,6 +192,15 @@ export default function CaregiverDashboard() {
             ))}
           </div>
         </div>
+
+        {/* Family Contacts */}
+        <FamilyContacts />
+
+        {/* Medical Records */}
+        <MedicalRecords />
+
+        {/* Patient Quick Notes */}
+        <PatientNotes />
 
         {/* AI Insights Summary */}
         <div className="bg-card rounded-2xl p-5 shadow-sm border border-border">

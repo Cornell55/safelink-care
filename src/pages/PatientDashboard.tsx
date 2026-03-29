@@ -4,6 +4,8 @@ import { ArrowLeft, Clock, CheckCircle } from "lucide-react";
 import { EmergencyButton } from "@/components/patient/EmergencyButton";
 import { TaskTakeover } from "@/components/patient/TaskTakeover";
 import { SelfReminder } from "@/components/patient/SelfReminder";
+import { MedicalInfo } from "@/components/patient/MedicalInfo";
+import { FamilyContactsList } from "@/components/patient/FamilyContactsList";
 import { SafeZoneAlert } from "@/components/patient/SafeZoneAlert";
 import { useTasks } from "@/hooks/useTasks";
 import { useAlarmSound } from "@/hooks/useAlarmSound";
@@ -165,8 +167,18 @@ export default function PatientDashboard() {
           </div>
         )}
 
-        {/* Self Reminder */}
+        {/* Family Contacts */}
         <div className="pt-4">
+          <FamilyContactsList />
+        </div>
+
+        {/* Medical Info */}
+        <div className="pt-2">
+          <MedicalInfo />
+        </div>
+
+        {/* Self Reminder */}
+        <div className="pt-2">
           <SelfReminder />
         </div>
       </div>
