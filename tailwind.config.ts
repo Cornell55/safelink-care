@@ -47,6 +47,32 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        patient: {
+          bg: "hsl(var(--patient-bg))",
+          fg: "hsl(var(--patient-fg))",
+          card: "hsl(var(--patient-card))",
+          accent: "hsl(var(--patient-accent))",
+          text: "hsl(var(--patient-text))",
+        },
+        caregiver: {
+          bg: "hsl(var(--caregiver-bg))",
+          fg: "hsl(var(--caregiver-fg))",
+          card: "hsl(var(--caregiver-card))",
+          accent: "hsl(var(--caregiver-accent))",
+        },
+        emergency: {
+          DEFAULT: "hsl(var(--emergency))",
+          foreground: "hsl(var(--emergency-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        safezone: "hsl(var(--safe-zone))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
