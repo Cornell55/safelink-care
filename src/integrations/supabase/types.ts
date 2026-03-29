@@ -92,6 +92,33 @@ export type Database = {
         }
         Relationships: []
       }
+      media_requests: {
+        Row: {
+          created_at: string
+          fulfilled_at: string | null
+          id: string
+          media_url: string | null
+          request_type: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          fulfilled_at?: string | null
+          id?: string
+          media_url?: string | null
+          request_type?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          fulfilled_at?: string | null
+          id?: string
+          media_url?: string | null
+          request_type?: string
+          status?: string
+        }
+        Relationships: []
+      }
       medical_records: {
         Row: {
           category: string
