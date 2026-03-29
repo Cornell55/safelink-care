@@ -23,6 +23,8 @@ export default function PatientDashboard() {
   const [dismissedZones, setDismissedZones] = useState<Set<string>>(new Set());
   const [safeZones, setSafeZones] = useState<SafeZone[]>([]);
 
+  useAlarmSound(!!activeReminder);
+
   // Fetch safe zones
   useEffect(() => {
     supabase.from("safe_zones").select("*").then(({ data }) => {
