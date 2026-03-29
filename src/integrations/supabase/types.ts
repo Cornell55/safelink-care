@@ -14,7 +14,132 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      emergency_events: {
+        Row: {
+          created_at: string
+          description: string | null
+          event_type: string
+          id: string
+          resolved: boolean
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          event_type?: string
+          id?: string
+          resolved?: boolean
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          event_type?: string
+          id?: string
+          resolved?: boolean
+        }
+        Relationships: []
+      }
+      gps_logs: {
+        Row: {
+          id: string
+          latitude: number
+          longitude: number
+          recorded_at: string
+        }
+        Insert: {
+          id?: string
+          latitude: number
+          longitude: number
+          recorded_at?: string
+        }
+        Update: {
+          id?: string
+          latitude?: number
+          longitude?: number
+          recorded_at?: string
+        }
+        Relationships: []
+      }
+      safe_zones: {
+        Row: {
+          contact_name: string | null
+          created_at: string
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          threshold_meters: number
+        }
+        Insert: {
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          threshold_meters?: number
+        }
+        Update: {
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          threshold_meters?: number
+        }
+        Relationships: []
+      }
+      self_reminders: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          description: string
+          due_time: string
+          id: string
+          snooze_count: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          description: string
+          due_time: string
+          id?: string
+          snooze_count?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string
+          due_time?: string
+          id?: string
+          snooze_count?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
