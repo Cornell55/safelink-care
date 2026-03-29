@@ -7,6 +7,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { PatientLocationMap } from "@/components/caregiver/PatientLocationMap";
+import { RemoteMediaControls } from "@/components/caregiver/RemoteMediaControls";
 import { FamilyContacts } from "@/components/caregiver/FamilyContacts";
 import { MedicalRecords } from "@/components/caregiver/MedicalRecords";
 import { PatientNotes } from "@/components/caregiver/PatientNotes";
@@ -98,13 +99,22 @@ export default function CaregiverDashboard() {
       </div>
 
       <div className="px-6 space-y-6 mt-6">
-        {/* Location Map */}
+        {/* Location Map — prominent */}
+        <div className="bg-card rounded-2xl p-5 shadow-sm border-2 border-primary/30">
+          <div className="flex items-center gap-2 mb-3">
+            <Activity className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-bold text-foreground">📍 Patient Location</h2>
+          </div>
+          <PatientLocationMap />
+        </div>
+
+        {/* Remote Camera & Mic */}
         <div className="bg-card rounded-2xl p-5 shadow-sm border border-border">
           <div className="flex items-center gap-2 mb-3">
             <Activity className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-bold text-foreground">Patient Location</h2>
+            <h2 className="text-lg font-bold text-foreground">🎥 Remote View</h2>
           </div>
-          <PatientLocationMap />
+          <RemoteMediaControls />
         </div>
 
         {/* Emergency Alerts */}
