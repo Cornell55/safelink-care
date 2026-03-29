@@ -6,6 +6,7 @@ import { TaskTakeover } from "@/components/patient/TaskTakeover";
 import { SelfReminder } from "@/components/patient/SelfReminder";
 import { SafeZoneAlert } from "@/components/patient/SafeZoneAlert";
 import { useTasks } from "@/hooks/useTasks";
+import { useAlarmSound } from "@/hooks/useAlarmSound";
 import { useGeolocation, getDistanceMeters } from "@/hooks/useGeolocation";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -21,6 +22,8 @@ export default function PatientDashboard() {
   const [nearbySafeZone, setNearbySafeZone] = useState<SafeZone | null>(null);
   const [dismissedZones, setDismissedZones] = useState<Set<string>>(new Set());
   const [safeZones, setSafeZones] = useState<SafeZone[]>([]);
+
+  useAlarmSound(!!activeReminder);
 
   // Fetch safe zones
   useEffect(() => {
