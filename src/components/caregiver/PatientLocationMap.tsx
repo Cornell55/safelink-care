@@ -7,8 +7,19 @@ import type { Tables } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 
 type GpsLog = Tables<"gps_logs">;
+type FamilyContact = Tables<"family_contacts">;
 
-type FamilyContact = Tables<"family_contacts">;({ lat, lng }: { lat: number; lng: number }) {
+const markerIcon = new L.Icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
   useEffect(() => {
     map.setView([lat, lng], map.getZoom(), { animate: true });
@@ -23,7 +34,6 @@ export function PatientLocationMap() {
 
   useEffect(() => {
     const fetchLatest = async () => {
-      // Try GPS logs first
       const { data: gpsData } = await supabase
         .from("gps_logs")
         .select("*")
@@ -32,7 +42,6 @@ export function PatientLocationMap() {
       if (gpsData?.[0]) {
         setLatestGps(gpsData[0]);
       } else {
-        // Fallback: show first family contact location so the map isn't empty
         const { data: contacts } = await supabase
           .from("family_contacts")
           .select("*")
@@ -55,7 +64,6 @@ export function PatientLocationMap() {
     };
   }, []);
 
-  // Determine what to display
   const mapLat = latestGps?.latitude ?? fallbackContact?.latitude;
   const mapLng = latestGps?.longitude ?? fallbackContact?.longitude;
   const isLive = !!latestGps;
@@ -76,16 +84,6 @@ export function PatientLocationMap() {
       </div>
     );
   }
-
-  const markerIcon = new L.Icon({
-    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
-  });
 
   return (
     <div className="space-y-2">
@@ -114,7 +112,7 @@ export function PatientLocationMap() {
               )}
             </Popup>
           </Marker>
-          <RecenterMapInner lat={mapLat} lng={mapLng} />
+          <RecenterMap lat={mapLat} lng={mapLng} />
         </MapContainer>
       </div>
       <p className="text-xs text-muted-foreground">
