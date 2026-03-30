@@ -7,7 +7,14 @@ import type { Tables } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 
 type GpsLog = Tables<"gps_logs">;
-type FamilyContact = Tables<"family_contacts">;
+
+function RecenterMapInner({ lat, lng }: { lat: number; lng: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView([lat, lng], map.getZoom(), { animate: true });
+  }, [lat, lng, map]);
+  return null;
+}
 
 export function PatientLocationMap() {
   const [latestGps, setLatestGps] = useState<GpsLog | null>(null);
