@@ -8,7 +8,7 @@ import { format } from "date-fns";
 
 type GpsLog = Tables<"gps_logs">;
 
-function RecenterMapInner({ lat, lng }: { lat: number; lng: number }) {
+type FamilyContact = Tables<"family_contacts">;({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
   useEffect(() => {
     map.setView([lat, lng], map.getZoom(), { animate: true });
