@@ -7,37 +7,32 @@ import type { Tables } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 
 type GpsLog = Tables<"gps_logs">;
-
-// Fix default marker icon
-const markerIcon = new L.Icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
-
-function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView([lat, lng], map.getZoom(), { animate: true });
-  }, [lat, lng, map]);
-  return null;
-}
+type FamilyContact = Tables<"family_contacts">;
 
 export function PatientLocationMap() {
   const [latestGps, setLatestGps] = useState<GpsLog | null>(null);
+  const [fallbackContact, setFallbackContact] = useState<FamilyContact | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchLatest = async () => {
-      const { data } = await supabase
+      // Try GPS logs first
+      const { data: gpsData } = await supabase
         .from("gps_logs")
         .select("*")
         .order("recorded_at", { ascending: false })
         .limit(1);
-      if (data?.[0]) setLatestGps(data[0]);
+      if (gpsData?.[0]) {
+        setLatestGps(gpsData[0]);
+      } else {
+        // Fallback: show first family contact location so the map isn't empty
+        const { data: contacts } = await supabase
+          .from("family_contacts")
+          .select("*")
+          .limit(1);
+        if (contacts?.[0]) setFallbackContact(contacts[0]);
+      }
+      setLoading(false);
     };
     fetchLatest();
 
@@ -53,10 +48,24 @@ export function PatientLocationMap() {
     };
   }, []);
 
-  if (!latestGps) {
+  // Determine what to display
+  const mapLat = latestGps?.latitude ?? fallbackContact?.latitude;
+  const mapLng = latestGps?.longitude ?? fallbackContact?.longitude;
+  const isLive = !!latestGps;
+
+  if (loading) {
     return (
       <div className="h-64 rounded-xl bg-muted flex items-center justify-center text-sm text-muted-foreground">
-        Waiting for patient location data...
+        Loading location data...
+      </div>
+    );
+  }
+
+  if (!mapLat || !mapLng) {
+    return (
+      <div className="h-64 rounded-xl bg-muted flex flex-col items-center justify-center text-sm text-muted-foreground gap-2 px-4 text-center">
+        <p className="font-semibold">No location data yet</p>
+        <p>Open the Patient Dashboard on the patient's device to start GPS tracking. The patient's browser must allow location access.</p>
       </div>
     );
   }
