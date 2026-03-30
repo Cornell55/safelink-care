@@ -7,8 +7,8 @@ import type { Tables } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 
 type GpsLog = Tables<"gps_logs">;
+type FamilyContact = Tables<"family_contacts">;
 
-// Fix default marker icon
 const markerIcon = new L.Icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -29,15 +29,26 @@ function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
 
 export function PatientLocationMap() {
   const [latestGps, setLatestGps] = useState<GpsLog | null>(null);
+  const [fallbackContact, setFallbackContact] = useState<FamilyContact | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchLatest = async () => {
-      const { data } = await supabase
+      const { data: gpsData } = await supabase
         .from("gps_logs")
         .select("*")
         .order("recorded_at", { ascending: false })
         .limit(1);
-      if (data?.[0]) setLatestGps(data[0]);
+      if (gpsData?.[0]) {
+        setLatestGps(gpsData[0]);
+      } else {
+        const { data: contacts } = await supabase
+          .from("family_contacts")
+          .select("*")
+          .limit(1);
+        if (contacts?.[0]) setFallbackContact(contacts[0]);
+      }
+      setLoading(false);
     };
     fetchLatest();
 
@@ -53,19 +64,37 @@ export function PatientLocationMap() {
     };
   }, []);
 
-  if (!latestGps) {
+  const mapLat = latestGps?.latitude ?? fallbackContact?.latitude;
+  const mapLng = latestGps?.longitude ?? fallbackContact?.longitude;
+  const isLive = !!latestGps;
+
+  if (loading) {
     return (
       <div className="h-64 rounded-xl bg-muted flex items-center justify-center text-sm text-muted-foreground">
-        Waiting for patient location data...
+        Loading location data...
+      </div>
+    );
+  }
+
+  if (!mapLat || !mapLng) {
+    return (
+      <div className="h-64 rounded-xl bg-muted flex flex-col items-center justify-center text-sm text-muted-foreground gap-2 px-4 text-center">
+        <p className="font-semibold">No location data yet</p>
+        <p>Open the Patient Dashboard on the patient's device to start GPS tracking. The patient's browser must allow location access.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-2">
+      {!isLive && (
+        <div className="bg-warning/10 text-warning rounded-lg px-3 py-2 text-xs font-medium">
+          ⚠️ No live GPS — showing nearest family contact location. Open the Patient Dashboard to enable tracking.
+        </div>
+      )}
       <div className="h-64 rounded-xl overflow-hidden border border-border">
         <MapContainer
-          center={[latestGps.latitude, latestGps.longitude]}
+          center={[mapLat, mapLng]}
           zoom={16}
           scrollWheelZoom={false}
           style={{ height: "100%", width: "100%" }}
@@ -74,17 +103,22 @@ export function PatientLocationMap() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <Marker position={[latestGps.latitude, latestGps.longitude]} icon={markerIcon}>
+          <Marker position={[mapLat, mapLng]} icon={markerIcon}>
             <Popup>
-              Patient's location<br />
-              {format(new Date(latestGps.recorded_at), "h:mm:ss a")}
+              {isLive ? (
+                <>Patient's location<br />{format(new Date(latestGps!.recorded_at), "h:mm:ss a")}</>
+              ) : (
+                <>📍 {fallbackContact?.name}'s location</>
+              )}
             </Popup>
           </Marker>
-          <RecenterMap lat={latestGps.latitude} lng={latestGps.longitude} />
+          <RecenterMap lat={mapLat} lng={mapLng} />
         </MapContainer>
       </div>
       <p className="text-xs text-muted-foreground">
-        Last update: {format(new Date(latestGps.recorded_at), "h:mm:ss a")}
+        {isLive
+          ? `🟢 Live · Last update: ${format(new Date(latestGps!.recorded_at), "h:mm:ss a")}`
+          : "🔴 Offline · Waiting for patient GPS data"}
       </p>
     </div>
   );
