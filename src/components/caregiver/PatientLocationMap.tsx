@@ -79,8 +79,39 @@ export function PatientLocationMap() {
     );
   }
 
+  // OpenStreetMap static tile preview (no JS map library needed)
+  const zoom = 15;
+  const tileX = Math.floor(((longitude! + 180) / 360) * Math.pow(2, zoom));
+  const latRad = (latitude! * Math.PI) / 180;
+  const tileY = Math.floor(
+    ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * Math.pow(2, zoom)
+  );
+  const staticMapUrl = `https://tile.openstreetmap.org/${zoom}/${tileX}/${tileY}.png`;
+
   return (
     <div className="space-y-3">
+      {/* Static mini-map preview */}
+      <button
+        onClick={() => mapsUrl && window.open(mapsUrl, "_blank", "noopener,noreferrer")}
+        className="relative w-full overflow-hidden rounded-2xl border border-border group cursor-pointer"
+      >
+        <img
+          src={staticMapUrl}
+          alt={`Map tile near ${latitude?.toFixed(4)}, ${longitude?.toFixed(4)}`}
+          className="w-full h-48 object-cover transition-transform group-hover:scale-105"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="bg-primary text-primary-foreground rounded-full p-2 shadow-lg ring-4 ring-primary/20">
+            <MapPin className="w-5 h-5" />
+          </div>
+        </div>
+        <div className="absolute bottom-2 right-2 bg-background/80 backdrop-blur-sm text-xs text-foreground px-2 py-1 rounded-lg flex items-center gap-1">
+          <Navigation className="w-3 h-3" />
+          Tap to open
+        </div>
+      </button>
+
       <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
@@ -123,8 +154,8 @@ export function PatientLocationMap() {
       <div className="rounded-2xl border border-dashed border-border bg-muted/40 p-4">
         <p className="text-sm text-muted-foreground">
           {isLive
-            ? "Live tracking is active and updates automatically when the patient's device sends a new GPS point."
-            : "Live map view was replaced with a stable location panel to avoid the runtime crash. Open map still gives direct navigation access."}
+            ? "Live tracking is active. The mini-map updates when new GPS data arrives."
+            : "Showing fallback coordinates. Open the Patient Dashboard to enable live tracking."}
         </p>
       </div>
     </div>
