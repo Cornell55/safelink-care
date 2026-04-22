@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus, Activity, AlertTriangle, Clock, CheckCircle, Trash2 } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
@@ -23,6 +23,22 @@ export default function CaregiverDashboard() {
   const [emergencies, setEmergencies] = useState<EmergencyEvent[]>([]);
   const [showAddTask, setShowAddTask] = useState(false);
   const locationStatus = useLocationStatus();
+
+  // Alert caregiver when GPS connectivity degrades
+  const prevLocationStatus = useRef(locationStatus);
+  useEffect(() => {
+    const prev = prevLocationStatus.current;
+    if (prev !== locationStatus) {
+      if (locationStatus === "waiting") {
+        toast.warning("⚠️ Location: Waiting — no GPS data from patient device", { duration: 8000 });
+      } else if (locationStatus === "fallback" && prev === "live") {
+        toast.warning("⚠️ Location: Fallback — live GPS signal lost", { duration: 8000 });
+      } else if (locationStatus === "live" && prev !== "live") {
+        toast.success("✅ Location: Live — GPS signal restored", { duration: 4000 });
+      }
+      prevLocationStatus.current = locationStatus;
+    }
+  }, [locationStatus]);
 
   // Fetch emergencies
   useEffect(() => {
