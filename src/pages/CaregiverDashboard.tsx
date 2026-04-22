@@ -11,6 +11,7 @@ import { RemoteMediaControls } from "@/components/caregiver/RemoteMediaControls"
 import { FamilyContacts } from "@/components/caregiver/FamilyContacts";
 import { MedicalRecords } from "@/components/caregiver/MedicalRecords";
 import { PatientNotes } from "@/components/caregiver/PatientNotes";
+import { LocationHistory } from "@/components/caregiver/LocationHistory";
 
 type EmergencyEvent = Tables<"emergency_events">;
 
@@ -127,6 +128,9 @@ export default function CaregiverDashboard() {
           </div>
           <PatientLocationMap />
         </div>
+
+        {/* Location History */}
+        <LocationHistory />
 
         {/* Remote Camera & Mic */}
         <div className="bg-card rounded-2xl p-5 shadow-sm border border-border">
