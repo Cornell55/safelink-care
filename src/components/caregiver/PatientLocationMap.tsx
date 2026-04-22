@@ -7,6 +7,59 @@ import { format } from "date-fns";
 type GpsLog = Tables<"gps_logs">;
 type FamilyContact = Tables<"family_contacts">;
 
+export type LocationStatus = "live" | "waiting" | "fallback";
+
+export function LocationStatusPill({ status }: { status: LocationStatus }) {
+  const config = {
+    live: { label: "Live", dot: "bg-success", text: "text-success", bg: "bg-success/10", ring: "ring-success/30" },
+    waiting: { label: "Waiting", dot: "bg-warning animate-pulse", text: "text-warning", bg: "bg-warning/10", ring: "ring-warning/30" },
+    fallback: { label: "Fallback", dot: "bg-muted-foreground", text: "text-muted-foreground", bg: "bg-muted", ring: "ring-border" },
+  }[status];
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${config.bg} ${config.text} ${config.ring}`}>
+      <span className={`w-2 h-2 rounded-full ${config.dot}`} />
+      Location: {config.label}
+    </span>
+  );
+}
+
+export function useLocationStatus(): LocationStatus {
+  const [status, setStatus] = useState<LocationStatus>("waiting");
+
+  useEffect(() => {
+    let mounted = true;
+    const evaluate = async () => {
+      const { data: gps } = await supabase
+        .from("gps_logs")
+        .select("recorded_at")
+        .order("recorded_at", { ascending: false })
+        .limit(1);
+      if (!mounted) return;
+      if (gps?.[0]) {
+        const ageMs = Date.now() - new Date(gps[0].recorded_at).getTime();
+        setStatus(ageMs < 90_000 ? "live" : "fallback");
+        return;
+      }
+      const { data: contacts } = await supabase.from("family_contacts").select("id").limit(1);
+      if (!mounted) return;
+      setStatus(contacts?.[0] ? "fallback" : "waiting");
+    };
+    evaluate();
+    const interval = setInterval(evaluate, 15_000);
+    const channel = supabase
+      .channel("gps-status-pill")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "gps_logs" }, () => setStatus("live"))
+      .subscribe();
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  return status;
+}
+
 export function PatientLocationMap() {
   const [latestGps, setLatestGps] = useState<GpsLog | null>(null);
   const [fallbackContact, setFallbackContact] = useState<FamilyContact | null>(null);
