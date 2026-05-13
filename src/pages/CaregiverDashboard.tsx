@@ -12,6 +12,7 @@ import { FamilyContacts } from "@/components/caregiver/FamilyContacts";
 import { MedicalRecords } from "@/components/caregiver/MedicalRecords";
 import { PatientNotes } from "@/components/caregiver/PatientNotes";
 import { LocationHistory } from "@/components/caregiver/LocationHistory";
+import { OnboardingChecklist } from "@/components/caregiver/OnboardingChecklist";
 
 type EmergencyEvent = Tables<"emergency_events">;
 
@@ -117,6 +118,9 @@ export default function CaregiverDashboard() {
       </div>
 
       <div className="px-6 space-y-6 mt-6">
+        {/* Onboarding */}
+        <OnboardingChecklist />
+
         {/* Location Map — prominent */}
         <div className="bg-card rounded-2xl p-5 shadow-sm border-2 border-primary/30">
           <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
