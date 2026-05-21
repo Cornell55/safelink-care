@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Shield, Plus, Trash2, Crosshair, Loader2, MapPin } from "lucide-react";
+import { Shield, Plus, Trash2, Crosshair, Loader2, MapPin, FlaskConical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
@@ -19,6 +19,16 @@ export function SafeZoneEditor() {
   const [radius, setRadius] = useState("100");
   const [locating, setLocating] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showTest, setShowTest] = useState(false);
+  const [testLat, setTestLat] = useState("");
+  const [testLng, setTestLng] = useState("");
+  const [testResult, setTestResult] = useState<
+    | {
+        triggered: SafeZone | null;
+        ranked: { zone: SafeZone; distance: number; inside: boolean }[];
+      }
+    | null
+  >(null);
 
   const load = async () => {
     const { data } = await supabase
@@ -125,6 +135,33 @@ export function SafeZoneEditor() {
     const { error } = await supabase.from("safe_zones").delete().eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Safe zone removed");
+  };
+
+  const runTest = () => {
+    const la = parseFloat(testLat);
+    const lo = parseFloat(testLng);
+    if (Number.isNaN(la) || Number.isNaN(lo)) {
+      toast.error("Enter valid latitude and longitude");
+      return;
+    }
+    if (zones.length === 0) {
+      toast.error("Add a safe zone first");
+      return;
+    }
+    const ranked = zones
+      .map((zone) => {
+        const distance = getDistanceMeters(la, lo, zone.latitude, zone.longitude);
+        return { zone, distance, inside: distance <= zone.threshold_meters };
+      })
+      .sort((a, b) => a.distance - b.distance);
+    const triggered = ranked.find((r) => r.inside)?.zone ?? null;
+    setTestResult({ triggered, ranked });
+  };
+
+  const useTestFromGps = () => {
+    if (!latestGps) return toast.error("No GPS data yet");
+    setTestLat(latestGps.latitude.toFixed(6));
+    setTestLng(latestGps.longitude.toFixed(6));
   };
 
   return (
