@@ -316,6 +316,102 @@ export function SafeZoneEditor() {
           </div>
         ))}
       </div>
+
+      {zones.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-border">
+          <button
+            onClick={() => setShowTest((s) => !s)}
+            className="w-full py-2 rounded-xl bg-muted text-foreground font-medium text-sm flex items-center justify-center gap-2"
+          >
+            <FlaskConical className="w-4 h-4" />
+            {showTest ? "Hide test" : "Test safe-zone"}
+          </button>
+          {showTest && (
+            <div className="mt-3 space-y-3 animate-slide-up">
+              <p className="text-xs text-muted-foreground">
+                Enter coordinates to simulate the patient device's location and
+                see which zone would trigger.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  value={testLat}
+                  onChange={(e) => setTestLat(e.target.value)}
+                  placeholder="Test latitude"
+                  inputMode="decimal"
+                  className="px-4 py-3 rounded-xl bg-muted text-foreground border-none outline-none text-sm placeholder:text-muted-foreground"
+                />
+                <input
+                  value={testLng}
+                  onChange={(e) => setTestLng(e.target.value)}
+                  placeholder="Test longitude"
+                  inputMode="decimal"
+                  className="px-4 py-3 rounded-xl bg-muted text-foreground border-none outline-none text-sm placeholder:text-muted-foreground"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={runTest}
+                  className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground font-semibold text-sm"
+                >
+                  Run test
+                </button>
+                <button
+                  onClick={useTestFromGps}
+                  disabled={!latestGps}
+                  className="px-4 py-2 rounded-xl bg-muted text-foreground font-medium text-sm disabled:opacity-60"
+                >
+                  Use latest GPS
+                </button>
+              </div>
+
+              {testResult && (
+                <div className="space-y-2">
+                  <div
+                    className={`rounded-xl p-3 border ${
+                      testResult.triggered
+                        ? "bg-success/10 border-success/30"
+                        : "bg-warning/10 border-warning/30"
+                    }`}
+                  >
+                    <p className="text-sm font-semibold text-foreground">
+                      {testResult.triggered
+                        ? `Would trigger: ${testResult.triggered.name}`
+                        : "No zone would trigger"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {testResult.triggered
+                        ? `Distance ${Math.round(
+                            testResult.ranked[0].distance,
+                          )}m is within the ${testResult.triggered.threshold_meters}m radius.`
+                        : `Nearest is ${testResult.ranked[0].zone.name} at ${Math.round(
+                            testResult.ranked[0].distance,
+                          )}m, outside its ${testResult.ranked[0].zone.threshold_meters}m radius.`}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-muted p-3 space-y-1">
+                    <p className="text-xs font-semibold text-foreground mb-1">
+                      All zones (closest first)
+                    </p>
+                    {testResult.ranked.map((r) => (
+                      <div
+                        key={r.zone.id}
+                        className="flex items-center justify-between text-xs"
+                      >
+                        <span className="text-foreground truncate">
+                          {r.inside ? "✅" : "·"} {r.zone.name}
+                        </span>
+                        <span className="text-muted-foreground flex-shrink-0 ml-2">
+                          {Math.round(r.distance)}m / {r.zone.threshold_meters}m
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
