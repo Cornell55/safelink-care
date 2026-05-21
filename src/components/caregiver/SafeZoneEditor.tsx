@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
-import { Shield, Plus, Trash2, Crosshair, Loader2 } from "lucide-react";
+import { Shield, Plus, Trash2, Crosshair, Loader2, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+import { getDistanceMeters } from "@/hooks/useGeolocation";
 
 type SafeZone = Tables<"safe_zones">;
+type GpsLog = Tables<"gps_logs">;
 
 export function SafeZoneEditor() {
   const [zones, setZones] = useState<SafeZone[]>([]);
+  const [latestGps, setLatestGps] = useState<GpsLog | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [contactName, setContactName] = useState("");
@@ -37,6 +40,39 @@ export function SafeZoneEditor() {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);
+
+  useEffect(() => {
+    const loadGps = async () => {
+      const { data } = await supabase
+        .from("gps_logs")
+        .select("*")
+        .order("recorded_at", { ascending: false })
+        .limit(1);
+      if (data && data[0]) setLatestGps(data[0]);
+    };
+    loadGps();
+    const channel = supabase
+      .channel("safe-zones-gps")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "gps_logs" },
+        (payload) => setLatestGps(payload.new as GpsLog),
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  const zoneStatus = (() => {
+    if (!latestGps || zones.length === 0) return null;
+    const scored = zones.map((z) => ({
+      zone: z,
+      distance: getDistanceMeters(latestGps.latitude, latestGps.longitude, z.latitude, z.longitude),
+    }));
+    scored.sort((a, b) => a.distance - b.distance);
+    const nearest = scored[0];
+    const inside = nearest.distance <= nearest.zone.threshold_meters;
+    return { ...nearest, inside, recordedAt: latestGps.recorded_at };
+  })();
 
   const useMyLocation = () => {
     if (!navigator.geolocation) {
@@ -111,6 +147,38 @@ export function SafeZoneEditor() {
         Active zones the patient device watches. Entering one shows a calming
         "You are safe" prompt; deleting deactivates it.
       </p>
+
+      {zoneStatus && (
+        <div
+          className={`mb-4 rounded-xl p-3 flex items-center gap-3 border ${
+            zoneStatus.inside
+              ? "bg-success/10 border-success/30"
+              : "bg-muted border-border"
+          }`}
+        >
+          <MapPin
+            className={`w-5 h-5 flex-shrink-0 ${
+              zoneStatus.inside ? "text-success" : "text-muted-foreground"
+            }`}
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-foreground truncate">
+              {zoneStatus.inside
+                ? `Inside ${zoneStatus.zone.name}`
+                : `Outside safe zones · nearest ${zoneStatus.zone.name}`}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {Math.round(zoneStatus.distance)}m away · updated{" "}
+              {new Date(zoneStatus.recordedAt).toLocaleTimeString()}
+            </p>
+          </div>
+        </div>
+      )}
+      {!zoneStatus && zones.length > 0 && (
+        <div className="mb-4 rounded-xl p-3 bg-muted border border-border text-xs text-muted-foreground">
+          Waiting for patient GPS data…
+        </div>
+      )}
 
       {showForm && (
         <div className="mb-4 space-y-3 animate-slide-up">
