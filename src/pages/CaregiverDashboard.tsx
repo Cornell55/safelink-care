@@ -13,6 +13,7 @@ import { MedicalRecords } from "@/components/caregiver/MedicalRecords";
 import { PatientNotes } from "@/components/caregiver/PatientNotes";
 import { LocationHistory } from "@/components/caregiver/LocationHistory";
 import { OnboardingChecklist } from "@/components/caregiver/OnboardingChecklist";
+import { SafeZoneEditor } from "@/components/caregiver/SafeZoneEditor";
 
 type EmergencyEvent = Tables<"emergency_events">;
 
@@ -135,6 +136,9 @@ export default function CaregiverDashboard() {
 
         {/* Location History */}
         <LocationHistory />
+
+        {/* Safe Zones */}
+        <SafeZoneEditor />
 
         {/* Remote Camera & Mic */}
         <div className="bg-card rounded-2xl p-5 shadow-sm border border-border">
